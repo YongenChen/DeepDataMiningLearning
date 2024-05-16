@@ -460,27 +460,13 @@ class YOLODataset(torch.utils.data.Dataset):
                 target_areas.append(area)
         nl=len(target_bbox)
         target = {}
-        #self.format = 'coco'
-        if self.format=='yolo':
-            target['img']=img #CHW
-            target['bboxes'] = torch.as_tensor(target_bbox, dtype=torch.float32) if nl else torch.zeros((nl, 4))
-            target['cls'] = torch.as_tensor(np.array(target_labels), dtype=torch.int64) if nl else torch.zeros(nl)
-            target['batch_idx'] = torch.zeros(nl) #new added in yolo
-            target['orig_shape'] = originalimgshape #torch.as_tensor(originalimgshape, dtype=torch.int64)
-            target['image_id'] = int(index)
-            target["area"] = torch.as_tensor(np.array(target_areas), dtype=torch.float32) if nl else torch.zeros(nl)
-            target["iscrowd"] = torch.as_tensor(np.array(target_crowds), dtype=torch.int64) if nl else torch.zeros(nl)
-            return target #dict
-        else:
-            target['boxes'] = torch.as_tensor(target_bbox, dtype=torch.float32) if nl else torch.zeros((nl, 4))
-            # Labels int value for class
-            target['labels'] = torch.as_tensor(np.array(target_labels), dtype=torch.int64) if nl else torch.zeros(nl)
-            target['image_id'] = int(index)
-            target["area"] = torch.as_tensor(np.array(target_areas), dtype=torch.float32) if nl else torch.zeros(nl)
-            target["iscrowd"] = torch.as_tensor(np.array(target_crowds), dtype=torch.int64) if nl else torch.zeros(nl)
-            target['batch_idx'] = torch.zeros(nl) #new added in yolo
-            target['orig_shape'] = originalimgshape # torch.as_tensor(originalimgshape, dtype=torch.int64)
-            return img, target
+        target['boxes'] = torch.as_tensor(target_bbox, dtype=torch.float32) if nl else torch.zeros((nl, 4))
+        target['labels'] = torch.as_tensor(np.array(target_labels), dtype=torch.int64) if nl else torch.zeros(nl)
+        target['image_id'] = int(index)
+        target["area"] = torch.as_tensor(np.array(target_areas), dtype=torch.float32) if nl else torch.zeros(nl)
+        target["iscrowd"] = torch.as_tensor(np.array(target_crowds), dtype=torch.int64) if nl else torch.zeros(nl)
+
+        return img, target
     
     #ultralytics\data\base.py
     def get_image_and_label(self, index):
