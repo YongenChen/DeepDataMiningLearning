@@ -286,6 +286,16 @@ def get_rank():
         return 0
     return dist.get_rank()
 
+def collate_fn(batch):
+    return tuple(zip(*batch))
+
+def mkdir(path):
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+
 
 def is_main_process():
     return get_rank() == 0
