@@ -11,9 +11,9 @@ import torchvision.models.detection
 from DeepDataMiningLearning.detection import utils
 from DeepDataMiningLearning.detection.trainutils import create_aspect_ratio_groups, GroupedBatchSampler
 
-from DeepDataMiningLearning.detection.dataset import get_dataset #get_cocodataset, get_kittidataset, get_transform
-from DeepDataMiningLearning.detection.models import create_detectionmodel #get_torchvision_detection_models, modify_fasterrcnnheader
-from DeepDataMiningLearning.detection.myevaluator import simplemodelevaluate, modelevaluate, yoloevaluate
+from DeepDataMiningLearning.detection.dataset import get_dataset
+from DeepDataMiningLearning.detection.models import create_detectionmodel
+from DeepDataMiningLearning.detection.myevaluator import simplemodelevaluate, modelevaluate
 
 try:
     from torchinfo import summary
@@ -314,6 +314,7 @@ def main(args):
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print(f"Training time {total_time_str}")
 
+
 def train_one_epoch(model, optimizer, data_loader, device, preprocess, epoch, print_freq, scaler=None):
     model.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
@@ -329,21 +330,14 @@ def train_one_epoch(model, optimizer, data_loader, device, preprocess, epoch, pr
             optimizer, start_factor=warmup_factor, total_iters=warmup_iters
         )
 
-    #images, targets
     for batch in metric_logger.log_every(data_loader, print_freq, header):
-        batch['img']=preprocess(batch['img']) #batch['img'] = batch['img'].to(device)
-        #img is already a tensor, preprocess function only do device
+        images, targets = batch['img'], batch['target']
+        images = list(image.to(device) for image in images)
+        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
-        #images = list(image.to(device) for image in images) #list of [3, 1280, 1920]
-        #targets = [{k: v.to(device) if isinstance(v, torch.Tensor) else v for k, v in t.items()} for t in targets] #tuple to list
         with torch.cuda.amp.autocast(enabled=scaler is not None):
-            #loss_dict = model(images, targets) #dict with 4 keys
-            loss, loss_items = model(batch)
-            losses = loss #sum(loss for loss in loss_dict.values()) #single value
-            loss_dict={}
-            loss_dict['box']=loss_items[0]
-            loss_dict['cls']=loss_items[1]
-            loss_dict['dfl']=loss_items[2]
+            loss_dict = model(images, targets)
+            losses = sum(loss for loss in loss_dict.values())
 
         # reduce losses over all GPUs for logging purposes
         loss_dict_reduced = utils.reduce_dict(loss_dict)
