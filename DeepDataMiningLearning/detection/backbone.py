@@ -161,3 +161,27 @@ if __name__ == "__main__":
     output = model(x) 
     print([(k, v.shape) for k, v in output.items()])
     #[('0', torch.Size([1, 256, 16, 16])), ('1', torch.Size([1, 256, 8, 8])), ('2', torch.Size([1, 256, 4, 4])), ('3', torch.Size([1, 256, 2, 2])), ('pool', torch.Size([1, 256, 1, 1]))]
+
+# integrating MobileNet backbone
+def get_mobilenet_fasterrcnn(num_classes):
+    backbone = torchvision.models.mobilenet_v2(pretrained=True).features
+    backbone.out_channels = 1280
+    
+    anchor_generator = AnchorGenerator(
+        sizes=((32, 64, 128, 256, 512),),
+        aspect_ratios=((0.5, 1.0, 2.0),) * 5
+    )
+    
+    roi_pooler = torchvision.ops.MultiScaleRoIAlign(
+        featmap_names=['0'],
+        output_size=7,
+        sampling_ratio=2
+    )
+    
+    model = FasterRCNN(
+        backbone,
+        num_classes=num_classes,
+        rpn_anchor_generator=anchor_generator,
+        box_roi_pool=roi_pooler
+    )
+    return model

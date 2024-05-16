@@ -18,13 +18,13 @@ except:
     #     args.model, weights=args.weights, weights_backbone=args.weights_backbone, num_classes=num_classes, **kwargs
     # )
 def get_torchvision_detection_models(modelname, box_score_thresh=0.9):
-    weights_enum = get_model_weights(modelname) #<enum 'FasterRCNN_MobileNet_V3_Large_320_FPN_Weights'>
-    weights = weights_enum.DEFAULT #get the default weights
+    weights_enum = get_model_weights(modelname)
+    weights = weights_enum.DEFAULT
     preprocess = weights.transforms()
     classes = weights.meta["categories"]
-    pretrained_model=get_model(modelname, box_score_thresh=0.9, weights="DEFAULT")
+    pretrained_model = get_model(modelname, box_score_thresh=box_score_thresh, weights="DEFAULT")
     
-    return pretrained_model, preprocess, weights, classes
+    return pretrained_model, preprocess, classes
 
 def modify_fasterrcnnheader(model, num_classes, freeze=True):
     if freeze == True:
